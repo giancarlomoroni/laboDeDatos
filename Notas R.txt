@@ -1,0 +1,55 @@
+str() te da info de la variable
+exp(1) es el numero e, y el argumento es a que va a estar elevado
+log(5, base =)
+rm(variable del sistema) resetea la variable a su valor por default.
+
+rep(x, times =, length.out =) x puede ser un numero o un vector, y lo mismo times. Si times es un vector debe ser del mismo largo que x
+	ya que lo que vas a indicar es cuanto se repite cada elemento individualmente.
+	length.out te especifica el largo del vector final, cuantas reps en total
+
+seq(inicio,fin,step)
+
+operador num %in% variable, devuelve un booleano de si el num esta en variable 
+
+primes[condicion de primes] se queda con los valores q cumplan aquella condicion
+
+which(condicion) devuelve los indices de los TRUE, la condicion debe ser un vector logico.
+
+--DataFrames
+Las variables son las columnas y cada fila son los distintas objetos
+puedo acceder como una matriz o puedo
+data[5] -- selecciona la columna 5 entera
+data[fila,columna]
+data[1:ncol] selecciono todo el dataframe
+data[,columna] selecciono la columna entera como vector, puede ser tambien como data$nombreCol o data[,nombreCol].
+
+para quedarte con una porcion del dataframe podes data[condicion sobre cada fila,] y te quedas
+con los samples que la cumplen. 
+puedo sacar una fila como data[-c(1),-c(1)]
+rbind(dataFrame,rows para agregar)
+cbind(dataframe,cols para agregar)
+length(dataFrame) -> tamano de columnas
+ncol y nrow te dice la cantidad correspondiente
+names(datos) te da colnames
+rownames(datos)
+
+
+--Funcion Factor
+factor(columna, levels = los actuales, labels = los que quiero clasificar)
+lo que hace te clasifica en grupos llamados levels()
+
+music_genre <- factor(c("Jazz", "Rock", "Classic", "Classic", "Pop", "Jazz", "Rock", "Jazz"))
+music genre tiene jazz rock classic pop que son las 4 levels
+levels(music_genre)
+
+
+--Clase 2 - Los Datos
+
+setwd() seteas el directorio de trabajo del proyecto para cargar archivos.
+read.table("/media/clinux01/UBUNTU 22_0/autos.txt", header = TRUE) --Cargar txt con nombre de columnas
+
+sort(v) sortea el vector
+order(v) devuelve un vector con los indices de los elementos en orden (ej: sort(c(3,4,1)) devuelve 3 1 2 --Sirve para reordenar filas en un df.
+rank(v) devuelve un vector que en la posicion de cada elemento tiene su "rango" en el vector ordenado, osea donde esta el segundo elemento mas grande pone un 2
+
+apply(matriz, margen, funcion) aplica la funcion a todos los elementos, margen = 1 indica filas, margen 2 indica columnas y margen c(1,2) indica ambas (ej sumar todas las columnas apply(matrix,2,sum))
