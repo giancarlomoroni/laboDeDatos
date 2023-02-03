@@ -1,0 +1,67 @@
+---
+title: "Practica1Posta_Markdown"
+output: html_document
+date: "2023-02-03"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Leemos Archivo
+```{r}
+astro <- read.csv('/media/clinux01/UBUNTU 22_0/astronauts.csv')
+library(rmarkdown)
+```
+# Ejercicio 9a
+```{r}
+astro$Gender<-factor(astro$Gender)
+astro$Status<-factor(astro$Status)
+paged_table(astro)
+```
+# Ejercicio 9b
+```{r}
+tabla <- table(astro$Space.Flights)
+tabla
+```
+
+#Ejercicio 9c
+```{r}
+maximo <- astro[which.max(astro$Space.Flights),]$Name
+minimo <- astro[which.min(astro$Space.Flights),]$Name
+```
+
+#Ejercicio 9d 
+```{r}
+plot(astro$Space.Flights,astro$Space.Walks,xlab = 'Vuelos',ylab = 'Caminata',type="p",pch = 20,col=4)
+```
+
+#Ejercicio 9e
+```{r}
+smoothScatter(astro$Space.Walks..hr.,astro$Space.Flight..hr.,xlab = 'Horas Vuelo',ylab = 'Horas Caminata')
+```
+# Ejercicio 9f
+```{r}
+cols <- c()
+for(i in 1:length(astro)){
+  if(is.numeric(astro[,i])){
+    cols <- c(cols,i)
+  }
+}
+
+dataNuevo <- astro[,cols]
+NAs<-!is.na.data.frame(dataNuevo)
+dataNuevo <- dataNuevo[NAs[,1],] #Saco los NA
+sumas <- sapply(dataNuevo,MARGIN = 2,sum,na.rm=TRUE)
+maximo <- sapply(dataNuevo,Margin = 2, max)
+minimo <- sapply(dataNuevo,Margin = 2, min)
+promedio <- sapply(dataNuevo,Margin = 2, mean)
+datos <- data.frame(Sumas=sumas,Maximo = maximo,Minimo = minimo, Promedio = promedio)
+
+p<-t(datos)
+p<-as.data.frame(p)
+paged_table(p)
+```
+
+
+

@@ -1,4 +1,4 @@
-str() te da info de la variable
+	str() te da info de la variable
 exp(1) es el numero e, y el argumento es a que va a estar elevado
 log(5, base =)
 rm(variable del sistema) resetea la variable a su valor por default.
@@ -19,9 +19,13 @@ which(condicion) devuelve los indices de los TRUE, la condicion debe ser un vect
 Las variables son las columnas y cada fila son los distintas objetos
 puedo acceder como una matriz o puedo
 data[5] -- selecciona la columna 5 entera
+data[[5]] -- te devuelve un vector con esas columnas
 data[fila,columna]
 data[1:ncol] selecciono todo el dataframe
 data[,columna] selecciono la columna entera como vector, puede ser tambien como data$nombreCol o data[,nombreCol].
+
+--El $ y el [[]] son lo mismo lo que devuelve es el tipo de elemento por lo que esta formado, en un dataFrame te devuelve un vector si
+seleccionas una columna.
 
 para quedarte con una porcion del dataframe podes data[condicion sobre cada fila,] y te quedas
 con los samples que la cumplen. 
@@ -47,9 +51,61 @@ levels(music_genre)
 
 setwd() seteas el directorio de trabajo del proyecto para cargar archivos.
 read.table("/media/clinux01/UBUNTU 22_0/autos.txt", header = TRUE) --Cargar txt con nombre de columnas
+read.csv() -- cargar csv
 
 sort(v) sortea el vector
 order(v) devuelve un vector con los indices de los elementos en orden (ej: sort(c(3,4,1)) devuelve 3 1 2 --Sirve para reordenar filas en un df.
 rank(v) devuelve un vector que en la posicion de cada elemento tiene su "rango" en el vector ordenado, osea donde esta el segundo elemento mas grande pone un 2
 
 apply(matriz, margen, funcion) aplica la funcion a todos los elementos, margen = 1 indica filas, margen 2 indica columnas y margen c(1,2) indica ambas (ej sumar todas las columnas apply(matrix,2,sum))
+Para DataFrames usar Sapply y para listas lapply.
+Si queremos usar argumentos de la funcion en si, vamos a utilizar los ... del apply para esto
+apply(x,margin,funcion,argumento1=,argumento2=,names = false) names = false es para que no aparezcan los nombres de la lista.
+
+sample(rango de valores, cantidad de muestras al azar, replace = booleano) el replace es si queremos que se repitan los rangos de valores.
+set.seed() para usar sample
+vector letters que tiene todos los caracteres del abecedario
+
+--paste0(argumento1,argumento2) Si alguno de los argumentos es un vector, se hara termino a termino, si son strings se concatenan al final.
+Ejemplos
+> paste0('hola', 1:5)
+[1] "hola1" "hola2" "hola3" "hola4" "hola5"
+
+> paste0(1:12, 5)
+ [1] "15"  "25"  "35"  "45"  "55"  "65"  "75"  "85"  "95"  "105" "115" "125"
+
+nchar(string) te devuelve el largo del string.
+runif(cantidad, min,max) te devuelve la cantidad de numeros random tipo float
+is.numeric() te dice si son numeros
+is.na() analiza todos los elementos y devuelve un solo valor de verdad
+in.na.data.frame() devuelve una matriz con los valores de verdad uno a uno
+
+--Markdown
+
+
+#Titulo
+##Subtitulo
+*negrita*
+_italica_
+Agregar new code en R para escribir una parte de la notebook
+
+```{r,echo=TRUE,include=TRUE}
+x<-c(1,2,3)
+y<-c(2,2,5)
+x
+plot(x,y,pch=20)
+```
+
+echo = FAlse es para que no muestre el codigo, default es true
+include = FALSE es para que no muestre la salida del codigo
+$Formula matematica$
+$$Formula matematica pero te la muestre$$
+knit es para compilar el codigo
+para una tabla linda en html :
+library(rmarkdown)
+paged_table(astro)
+
+
+
+
+
