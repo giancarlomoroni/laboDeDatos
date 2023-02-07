@@ -66,7 +66,7 @@ sample(rango de valores, cantidad de muestras al azar, replace = booleano) el re
 set.seed() para usar sample
 vector letters que tiene todos los caracteres del abecedario
 
---paste0(argumento1,argumento2) Si alguno de los argumentos es un vector, se hara termino a termino, si son strings se concatenan al final.
+--paste0(argumento1,argumento2) Si alguno de los argumentos es un vector, se hara termino a termino, si son strings se concatenan al final. Es para Strings unicamente
 Ejemplos
 > paste0('hola', 1:5)
 [1] "hola1" "hola2" "hola3" "hola4" "hola5"
@@ -106,6 +106,28 @@ library(rmarkdown)
 paged_table(astro)
 
 
+--Semana 2
 
+readLines(archivo,n=numero) lee la lineas que le pases por n, si le pone n = 1 te lee los features, pero te lee el archivo para entender como esta codificado.
+str(dataFrame) te cuenta informacion del dataFrame
+Al pisar una variable del tipo
+var <- var[logica] al correrlo varias veces lo que hace es que se va a ir pisando cada vez mas, pero el largo del vector no se modifica porque 
+lo que pasa es que a medida que var se achica en tamano y logica es igual, lo que hace es que completar con NA los valores que no estan disponibles de indexar en var.
 
+prop.table(tb) -- Tira un porcentaje de apariciones de cada elemento.
+
+moda = which.max(table(x))
+mean() -> promedio
+median() -> te da la media.
+range(vector) te devuelve -> (min(variable),max(variable)) generalmente sirve para detectar si hay errores
+quantile(vector) devuelve los cuartiles, si le pongo un argumento me da el cuantil
+quantile(vector,0.2) te da el cuantil 20, osea que te da que valor separa el 20% en valores menores y que el 80% de los datos son mayores a ese valor.
+quantile(vector,que valor dejamos a izquierda)
+quantile(vector,(0:10)/10) te da de a 10 en 10
+el 10% y 90% del cuantil te da un mejor rango de como se mueve la variable 
+Iqr() devuelve la distancia intercuartil
+var() es la varianza
+sd() desviacion estandar
+summary(variable) te tira ciertos datos estadisticos de la variable.
+plot(vector) pone en eje x el indice y en y el valor, sirve para ver si estan ordenados.
 
