@@ -131,3 +131,12 @@ sd() desviacion estandar
 summary(variable) te tira ciertos datos estadisticos de la variable.
 plot(vector) pone en eje x el indice y en y el valor, sirve para ver si estan ordenados.
 
+
+-Graficos
+boxplot(array, outline = ) 	La opción outline=FALSE nos permite graficar el boxplot sin los outliers.
+NA == a otra cosa, devuelve NA
+is.element(array,elemento) devuelve un vector logico que te da TRUE si el elemento esta en el array y no tiene en cuenta los NA por lo tanto es bueno.
+
+
+
+
