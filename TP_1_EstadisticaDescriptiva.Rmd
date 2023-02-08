@@ -1,0 +1,88 @@
+---
+title: "Tp_1"
+output: html_document
+date: "2023-02-08"
+---
+
+```{r setup, include = F}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+x <- c(0,10,70,100,110,300,420,700,1500)
+y <-c(5,15,71,72,110,111,415,730,3000)
+quantile(y)
+categoria <- c("Auto","Auto","Auto","Auto","Auto","Auto","Auto","Auto","Auto",
+              "Moto","Moto","Moto","Moto","Moto","Moto","Moto","Moto","Moto")
+categoria <- factor(categoria)
+valores <- c(x,y)
+
+boxplot(valores~categoria,outline=F)
+```
+# Ejercicio 1
+
+## Cargo los Datos
+
+```{r}
+dataGrande <- read.csv('/media/clinux01/UBUNTU 22_0/Semana 2/ar_properties.csv')
+datos <- dataGrande[is.element(dataGrande$l3,"Boedo") | is.element(dataGrande$l3,"Colegiales")
+                    | is.element(dataGrande$l3,"Centro / Microcentro") | is.element(dataGrande$l3,"Mataderos")
+                    | is.element(dataGrande$l3,"Puerto Madero"),]
+datos$l3 <- factor(datos$l3)
+```
+## Parte 1
+```{r}
+(sum(is.na(datos$rooms) | is.na(datos$surface_total))) > 0
+```
+Como nos da TRUE es decir que tenemos algun dato ya sea de superficie como de habitaciones que tiene NA.
+
+## Parte 2
+Hago los Histogramas para cada superficie segun el barrio
+```{r}
+#Superficie Mataderos
+hist(datos[datos$l3 == "Mataderos" & !is.na(datos$surface_total),"surface_total"], main = "Superficie en Mataderos",xlab="Superficie",breaks = 40,xlim = c(0,1200))
+
+#Superficie Boedo
+hist(datos[datos$l3 == "Boedo","surface_total"], main = "Superficie en Boedo",xlab="Superficie",xlim = c(0,700),breaks=200)
+
+#Superficie Colegiales
+hist(datos[datos$l3 == "Colegiales","surface_total"], main = "Superficie en Colegiales",xlab="Superficie",xlim = c(0,600),breaks=100)
+
+#Superficie Centro / Microcentro
+hist(datos[datos$l3 == "Centro / Microcentro","surface_total"], main = "Superficie en Centro / Microcentro",xlab="Superficie",xlim = c(0,1000),breaks=400)
+
+#Superficie Puerto Madero
+hist(datos[datos$l3 == "Puerto Madero","surface_total"], main = "Superficie en Puerto Madero¨",xlab="Superficie",xlim = c(0,1000),breaks=200)
+
+```
+Hago un diagrama en barra de cada barrio en funcion a las habitaciones
+
+```{r}
+habitacionesMataderos <- datos[datos$l3 == "Mataderos",]$rooms
+barplot(table(habitacionesMataderos))
+habitacionesBoedo <- datos[datos$l3 == "Boedo",]$rooms
+barplot(table(habitacionesBoedo))
+habitacionesColegiales <- datos[datos$l3 == "Colegiales",]$rooms
+barplot(table(habitacionesColegiales))
+habitacionesCentro <- datos[datos$l3 == "Centro / Microcentro",]$rooms
+barplot(table(habitacionesCentro))
+habitacionesPuerto <- datos[datos$l3 == "Puerto Madero",]$rooms
+barplot(table(habitacionesPuerto))
+```
+
+# Parte 3
+La unica sospecha es ver que quizas estan codificados algunos departamentos con superficie 0, entonces vamos a chequear esto.
+
+```{r}
+(sum(datos[datos$l3 == "Mataderos","surface_total"] == 0,na.rm = T)) > 0
+(sum(datos[datos$l3 == "Boedo","surface_total"] == 0,na.rm = T)) > 0
+(sum(datos[datos$l3 == "Colegiales","surface_total"] == 0,na.rm = T)) > 0
+(sum(datos[datos$l3 == "Centro / Microcentro","surface_total"] == 0,na.rm = T)) > 0
+(sum(datos[datos$l3 == "Puerto Madero","surface_total"] == 0,na.rm = T)) > 0
+sum(datos[datos$l3 == "Puerto Madero","surface_total"] == 0,na.rm = T)
+```
+Puerto Madero tiene 29 propiedades que no tienen cargada su superficie, por lo cual en el grafico va a haber una pequeña distorsion.
+
+# Parte 4
+ 
+
