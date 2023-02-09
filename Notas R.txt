@@ -30,8 +30,8 @@ seleccionas una columna.
 para quedarte con una porcion del dataframe podes data[condicion sobre cada fila,] y te quedas
 con los samples que la cumplen. 
 puedo sacar una fila como data[-c(1),-c(1)]
-rbind(dataFrame,rows para agregar)
-cbind(dataframe,cols para agregar)
+rbind(dataFrame,nuevo dataFrame con rows para agregar)
+cbind(dataframe,nuevo dataFrame con cols para agregar)
 length(dataFrame) -> tamano de columnas
 ncol y nrow te dice la cantidad correspondiente
 names(datos) te da colnames
@@ -101,6 +101,7 @@ include = FALSE es para que no muestre la salida del codigo
 $Formula matematica$
 $$Formula matematica pero te la muestre$$
 knit es para compilar el codigo
+
 para una tabla linda en html :
 library(rmarkdown)
 paged_table(astro)
@@ -136,7 +137,16 @@ plot(vector) pone en eje x el indice y en y el valor, sirve para ver si estan or
 boxplot(array, outline = ) 	La opción outline=FALSE nos permite graficar el boxplot sin los outliers.
 NA == a otra cosa, devuelve NA
 is.element(array,elemento) devuelve un vector logico que te da TRUE si el elemento esta en el array y no tiene en cuenta los NA por lo tanto es bueno.
+<br /> es el /n para usar en markdown
+droplevels(variable factor) te saca los levels que ya no usas de una variable del tipo factor
 
+hist(datos,main = titulo,xlab,ylab,breaks = como subdividis es un numero cualquiera, xlim)
 
+barplot(table(dato), mismos arg que hist)
 
+boxplot(variable continua ~ variable categorica, cex.axis = numero) cex.axis es el tamano de la letra, y el ~ siginifica un grafico (x,y) y seria como y ~ x, es una formula
+donde x es meramente categorica e y una variable continua o discreta.
 
+PARA ESCALA LOGARITMICA SE PONE plot(..,log = 'y',...)
+
+coplot(y ~ x | categorica, rows = 1) x e y son variables continuas entonces podes separar en distintos graficos para comparar variables continuas.

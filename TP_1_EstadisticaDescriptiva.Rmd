@@ -1,5 +1,5 @@
 ---
-title: "Tp_1"
+title: "TP Estadistica Descriptiva"
 output: html_document
 date: "2023-02-08"
 ---
@@ -8,69 +8,60 @@ date: "2023-02-08"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-x <- c(0,10,70,100,110,300,420,700,1500)
-y <-c(5,15,71,72,110,111,415,730,3000)
-quantile(y)
-categoria <- c("Auto","Auto","Auto","Auto","Auto","Auto","Auto","Auto","Auto",
-              "Moto","Moto","Moto","Moto","Moto","Moto","Moto","Moto","Moto")
-categoria <- factor(categoria)
-valores <- c(x,y)
+## Ejercicio 1
 
-boxplot(valores~categoria,outline=F)
-```
-# Ejercicio 1
-
-## Cargo los Datos
+### Cargamos los datos
 
 ```{r}
-dataGrande <- read.csv('/media/clinux01/UBUNTU 22_0/Semana 2/ar_properties.csv')
+library(rmarkdown)
+dataGrande <- read.csv('D:/Facultad/LaboDatos/Semana 2/ar_properties.csv')
 datos <- dataGrande[is.element(dataGrande$l3,"Boedo") | is.element(dataGrande$l3,"Colegiales")
                     | is.element(dataGrande$l3,"Centro / Microcentro") | is.element(dataGrande$l3,"Mataderos")
                     | is.element(dataGrande$l3,"Puerto Madero"),]
 datos$l3 <- factor(datos$l3)
+paged_table(datos)
 ```
-## Parte 1
+### Parte 1
 ```{r}
 (sum(is.na(datos$rooms) | is.na(datos$surface_total))) > 0
 ```
 Como nos da TRUE es decir que tenemos algun dato ya sea de superficie como de habitaciones que tiene NA.
 
-## Parte 2
+### Parte 2
 Hago los Histogramas para cada superficie segun el barrio
 ```{r}
 #Superficie Mataderos
 hist(datos[datos$l3 == "Mataderos" & !is.na(datos$surface_total),"surface_total"], main = "Superficie en Mataderos",xlab="Superficie",breaks = 40,xlim = c(0,1200))
 
 #Superficie Boedo
-hist(datos[datos$l3 == "Boedo","surface_total"], main = "Superficie en Boedo",xlab="Superficie",xlim = c(0,700),breaks=200)
+hist(datos[datos$l3 == "Boedo","surface_total"], main = "Superficie en Boedo",xlab="Superficie",xlim = c(0,700),breaks=500)
 
 #Superficie Colegiales
-hist(datos[datos$l3 == "Colegiales","surface_total"], main = "Superficie en Colegiales",xlab="Superficie",xlim = c(0,600),breaks=100)
+hist(datos[datos$l3 == "Colegiales","surface_total"], main = "Superficie en Colegiales",xlab="Superficie",xlim = c(0,600),breaks=200)
 
 #Superficie Centro / Microcentro
-hist(datos[datos$l3 == "Centro / Microcentro","surface_total"], main = "Superficie en Centro / Microcentro",xlab="Superficie",xlim = c(0,1000),breaks=400)
+hist(datos[datos$l3 == "Centro / Microcentro","surface_total"], main = "Superficie en Centro / Microcentro",xlab="Superficie",xlim = c(0,1000),breaks=800)
 
 #Superficie Puerto Madero
-hist(datos[datos$l3 == "Puerto Madero","surface_total"], main = "Superficie en Puerto Madero¨",xlab="Superficie",xlim = c(0,1000),breaks=200)
+hist(datos[datos$l3 == "Puerto Madero","surface_total"], main = "Superficie en Puerto Madero",xlab="Superficie",xlim = c(0,1000),breaks=300)
 
 ```
 Hago un diagrama en barra de cada barrio en funcion a las habitaciones
 
 ```{r}
 habitacionesMataderos <- datos[datos$l3 == "Mataderos",]$rooms
-barplot(table(habitacionesMataderos))
+barplot(table(habitacionesMataderos),main = "Habitaciones en Mataderos",xlab = "Ambientes",ylab="Cantidad")
 habitacionesBoedo <- datos[datos$l3 == "Boedo",]$rooms
-barplot(table(habitacionesBoedo))
+barplot(table(habitacionesBoedo),main = "Habitaciones en Boedo",xlab = "Ambientes",ylab="Cantidad")
 habitacionesColegiales <- datos[datos$l3 == "Colegiales",]$rooms
-barplot(table(habitacionesColegiales))
+barplot(table(habitacionesColegiales),main = "Habitaciones en Colegiales",xlab = "Ambientes",ylab="Cantidad")
 habitacionesCentro <- datos[datos$l3 == "Centro / Microcentro",]$rooms
-barplot(table(habitacionesCentro))
+barplot(table(habitacionesCentro), main = "Habitaciones en Microcentro",xlab = "Ambientes",ylab="Cantidad")
 habitacionesPuerto <- datos[datos$l3 == "Puerto Madero",]$rooms
-barplot(table(habitacionesPuerto))
+barplot(table(habitacionesPuerto),main = "Habitaciones en Puerto Madero",xlab = "Ambientes",ylab="Cantidad")
 ```
 
-# Parte 3
+### Parte 3
 La unica sospecha es ver que quizas estan codificados algunos departamentos con superficie 0, entonces vamos a chequear esto.
 
 ```{r}
@@ -81,8 +72,179 @@ La unica sospecha es ver que quizas estan codificados algunos departamentos con 
 (sum(datos[datos$l3 == "Puerto Madero","surface_total"] == 0,na.rm = T)) > 0
 sum(datos[datos$l3 == "Puerto Madero","surface_total"] == 0,na.rm = T)
 ```
-Puerto Madero tiene 29 propiedades que no tienen cargada su superficie, por lo cual en el grafico va a haber una pequeña distorsion.
+Puerto Madero tiene 29 propiedades que no tienen cargada su superficie, por lo cual en el grafico va a haber una pequeña distorsion, pero los demas barrios no tienen esta inconveniente.
 
-# Parte 4
- 
+### Parte 4
+
+```{r}
+summary(datos$surface_total)
+var(datos$surface_total,na.rm=T)
+sd(datos$surface_total,na.rm=T)
+```
+
+
+
+Mataderos
+```{r}
+superficieMataderos <- datos[datos$l3 == "Mataderos","surface_total"]
+cuartilMataderos <- quantile(superficieMataderos,na.rm = T)
+varianzaMataderos <- var(superficieMataderos,na.rm=T)
+desvioMataderos <- sd(superficieMataderos,na.rm=T)
+promedioMataderos <- mean(superficieMataderos,na.rm = T)
+```
+Puerto Madero
+```{r}
+superficiePuerto <- datos[datos$l3 == "Puerto Madero","surface_total"]
+cuartilPuerto <- quantile(superficiePuerto,na.rm = T)
+varianzaPuerto <- var(superficiePuerto,na.rm=T)
+desvioPuerto <- sd(superficiePuerto,na.rm=T)
+promedioPuerto <- mean(superficiePuerto,na.rm=T)
+```
+
+Boedo
+```{r}
+superficieBoedo <- datos[datos$l3 == "Boedo","surface_total"]
+cuartilBoedo <- quantile(superficieBoedo,na.rm = T)
+varianzaBoedo <- var(superficieBoedo,na.rm=T)
+desvioBoedo <- sd(superficieBoedo,na.rm=T)
+promedioBoedo <- mean(superficieBoedo,na.rm=T)
+```
+Centro
+```{r}
+superficieCentro <- datos[datos$l3 == "Centro / Microcentro","surface_total"]
+cuartilCentro <- quantile(superficieCentro,na.rm = T)
+varianzaCentro <- var(superficieCentro,na.rm=T)
+desvioCentro <- sd(superficieCentro,na.rm=T)
+promedioCentro <- mean(superficieCentro,na.rm=T)
+```
+Colegiales
+```{r}
+superficieColegiales <- datos[datos$l3 == "Colegiales","surface_total"]
+cuartilColegiales <- quantile(superficieColegiales,na.rm = T)
+varianzaColegiales <- var(superficieColegiales,na.rm=T)
+desvioColegiales <- sd(superficieColegiales,na.rm=T)
+promedioColegiales <- mean(superficieColegiales,na.rm=T)
+```
+Creo la tabla de comparacion
+```{r}
+tabla <- data.frame(Barrio = c("Boedo","Centro / Microcentro", "Colegiales", "Mataderos", "Puerto Madero"),
+                    Promedio = c(promedioBoedo,promedioCentro,promedioColegiales,promedioMataderos,promedioPuerto),
+                    C1 = c(cuartilBoedo[2],cuartilCentro[2],cuartilColegiales[2],cuartilMataderos[2],cuartilPuerto[2]),
+                    Mediana = c(cuartilBoedo[3],cuartilCentro[3],cuartilColegiales[3],cuartilMataderos[3],cuartilPuerto[3]),
+                    C3 = c(cuartilBoedo[4],cuartilCentro[4],cuartilColegiales[4],cuartilMataderos[4],cuartilPuerto[4]),
+                    Varianza = c(varianzaBoedo,varianzaCentro,varianzaColegiales,varianzaMataderos,varianzaPuerto),
+                    DesvioEstandar = c(desvioBoedo,desvioCentro,desvioColegiales,desvioMataderos,desvioPuerto))
+tabla
+
+```
+**Como es el promedio comparado con la mediana?** <br />
+El promedio es mas grande que la mediana porque seguramente en cada barrio existe una propiedad que es lo suficientemente grande como para desemparejar la robustez de la mediana.
+
+
+**Entre que valores varian las superficies?** <br />
+Los extremos de las superficies van desde 10m^2 y 23000 m^2, pero generalmente hay un promedio de que la mayoria de propiedades estan entre 35 $m^2$ y 280 $m^2$. Lo podemos definir como la Distancia Intercuartil.
+
+**Donde esta la propiedad con Superficie mas Grande?** <br />
+Esta propiedad estsa en Microcentro ya que tenemos una enorme Varianza pero cabe destacar que esta propiedad esta repetida en el dataSet
+
+**Donde varia mas el tamano de las propiedades?** <br />
+El tamaño varia mas en microcentro ya que tenemos una mayor varianza, y un desvio de casi el doble con el segundo de mayor Varianza.
+
+### Parte 5
+```{r}
+barrios <- datos$l3
+barrios[is.element(barrios,"Centro / Microcentro")] <- NA
+barrios <- droplevels(barrios)
+barrios <- factor(barrios,levels = c("Boedo","Colegiales","Puerto Madero","Mataderos","Centro"))
+barrios[is.na(barrios) ]<- "Centro"
+boxplot(datos$surface_total~barrios,outline =F, ylab = 'Superficie',xlab = "Barrios",cex.axis = 0.9, main = "Superficie segun barrio")
+boxplot(datos$rooms~barrios,outline =F, ylab = 'Habitaciones',xlab = "Barrios",cex.axis=0.9, main = "Habitaciones segun barrio")
+
+```
+### Parte 6
+```{r}
+tamanioPromedioBoedo <- mean((datos[datos$l3 == "Boedo","surface_covered"]/habitacionesBoedo),na.rm =T)
+tamanioPromedioColegiales <- mean((datos[datos$l3 == "Colegiales","surface_covered"]/habitacionesColegiales),na.rm =T)
+tamanioPromedioPuerto <- mean((datos[datos$l3 == "Puerto Madero","surface_covered"]/habitacionesPuerto),na.rm =T)
+tamanioPromedioMataderos <- mean((datos[datos$l3 == "Mataderos","surface_covered"]/habitacionesMataderos),na.rm =T)
+tamanioPromedioCentro <- mean((datos[datos$l3 == "Centro / Microcentro","surface_covered"]/habitacionesCentro),na.rm =T)
+barplot(c(tamanioPromedioBoedo,tamanioPromedioColegiales,tamanioPromedioPuerto,tamanioPromedioMataderos,tamanioPromedioCentro), names.arg = levels(barrios), main = "Superficie promedio por habitacion",ylab = "Superficie")
+
+variableNueva <- data.frame("surface_covered / rooms" = datos$surface_covered / datos$rooms)
+newDatos <- cbind(datos,variableNueva)
+```
+
+## Ejercicio 2
+
+Vamos a seleccionar solamente aquellas propiedades en dolares y construimos la nueva variable fondo. <br / >
+### Parte 1
+```{r}
+df <- newDatos[datos$currency == "USD",]
+df <- cbind(df, data.frame("fondo" = df$surface_total - df$surface_covered))
+paged_table(df)
+```
+### Parte 2
+
+```{r}
+plot(df$surface_total,df$price,xlim = c(0,3000),ylim=c(0,0.6e+07), xlab = "Superficie total", ylab = "Precio", main = "Precio en funcion de superficie", type = 'p',pch = 20)
+plot(df$surface_total,df$price,xlim = c(0,3000),log = 'y',xlab = "Superficie total", ylab = "Precio", main = "Precio en funcion de superficie Logaritmico",type = 'p',pch = 20)
+```
+<br />
+En este caso se ve que a medida que aumenta la superficie total, llega un punto que va creciendo linealmente ya que tenemos aplicado el logaritmo. Tambien se ve como que existe dos grupos de precios, unos mas bajos y otros mas altos.
+```{r}
+plot(df$surface_covered,df$price,xlim = c(0,3000),ylim=c(0,0.6e+07),  xlab = "Superficie Cubierta", ylab = "Precio", main = "Precio en funcion de superficie cubierta",type = 'p',pch = 20)
+plot(df$surface_covered,df$price,xlim = c(0,3000),log = "y", xlab = "Superficie Cubierta", ylab = "Precio", main = "Precio en funcion de superficie cubierta Logaritmica",type = 'p',pch = 20)
+```
+
+Nuevamente tiene una tendencia muy parecida a una funcion logartimica por lo que hace que veamos los datos de precios en funcion a la superficie cubierta sea algo lineal, aunque para ciertos puntos. Luego se ve que dos grandes grupos de precios.
+
+```{r}
+plot(df$fondo,df$price,xlim = c(0,1500),ylim=c(0,0.6e+07), xlab = "Superficie del fondo", ylab = "Precio", main = "Precio en funcion del fondo", type = 'p',pch = 20)
+plot(df$fondo,df$price,xlim = c(0,1500),log = "y", xlab = "Superficie del fondo", ylab = "Precio", main = "Precio en funcion del fondo Logaritmico",type = 'p',pch = 20)
+```
+<br />
+Vemos que realmente el precio no esta muy claro en funcion del tamano del fondo, ya que tenemos como una gran linea recta cercana al 0.
+```{r}
+plot(df$surface_covered...rooms,df$price,xlim = c(0,600),ylim=c(0,0.6e+07), xlab = "Superficie de habitacion promedio", ylab = "Precio", main = "Precio en funcion del superficie de habitacion promedio", type = 'p',pch = 20)
+plot(df$surface_covered...rooms,df$price,xlim = c(0,600),log = 'y', xlab = "Superficie de habitacion promedio", ylab = "Precio", main = "Precio en funcion del superficie de habitacion promedio Logaritmico",type = 'p',pch = 20)
+```
+<br />
+Aca vemos que a medida que aumenta la superficie por habitacion, tenemos un ligero aumento en el precio.
+
+### Parte 3
+
+```{r}
+boxplot(df$price ~ df$property_type, outline=F,las=2,cex.axis = 0.6,xlab=" ",ylab = "Precio", main = "Precio en funcion del tipo de propiedad")
+
+#Mataderos
+boxplot(df[df$l3 == "Mataderos","price"]~df[df$l3 == "Mataderos","property_type"],outline = F,las = 2, cex.axis = 0.7,xlab = " ", ylab = "Precio", main = "Precios en Mataderos")
+
+#Boedo
+boxplot(df[df$l3 == "Boedo","price"]~df[df$l3 == "Boedo","property_type"],outline = F,las = 2, cex.axis = 0.7,xlab = " ", ylab = "Precio", main = "Precios en Boedo")
+
+#Centro / Microcentro
+boxplot(df[df$l3 == "Centro / Microcentro","price"]~df[df$l3 == "Centro / Microcentro","property_type"],outline = F,las = 2, cex.axis = 0.7,xlab = " ", ylab = "Precio", main = "Precios en Centro / Microcentro")
+
+#Puerto Madero
+boxplot(df[df$l3 == "Puerto Madero","price"]~df[df$l3 == "Puerto Madero","property_type"],outline = F,las = 2, cex.axis = 0.7,xlab = " ", ylab = "Precio", main = "Precios en Puerto Madero")
+
+#Colegiales
+boxplot(df[df$l3 == "Colegiales","price"]~df[df$l3 == "Colegiales","property_type"],outline = F,las = 2, cex.axis = 0.7,xlab = " ", ylab = "Precio", main = "Precios en Colegiales")
+
+```
+<br />
+## Parte 4
+<br />
+```{r, echo=FALSE,results='hide',fig.keep='all'}
+propiedades <- df$property_type
+coplot(df$price ~ df$surface_total | propiedades,xlim = c(0,5000),rows = 1,ylim = c(0,0.6e7), xlab = "Superficie total", ylab = "Precio", pch = 20)
+```
+<br /> 
+Lo que permite tener categorizado segun tipo de propiedad el precio es que te permite ver por ejeplo que en los departamentos no importa la superficie total, pero si en otros lugares como puede ser el Lote, podemos ver porque tambien hay muchos puntos cercanos a 0 en el grafico original y es debido a que por ejemplo las cocheras son todas chicas.
+<br />
+## Conclusion:  
+<br / >
+Lo que podemos ver en el dataset, es que el precio de la propiedad no depende sencillamente de que tan grande sea, hay que tener en cuenta otros factores como la ubicacion, por ejemplo los lotes en Puerto Madero son mas caros que en otros barrios. Ademas las habitaciones por barrio suelen estar en una mediana de 2 y 3 habitaciones, en barrios como Mataderos que son de menor poblacion suelen tener en 2 y 4.
+<br / >
+Luego, tener un patio o un fondo no genera mucho mas costosa la casa.Preguntar por que me dejo de tomar los titulos.
 
