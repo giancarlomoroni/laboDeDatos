@@ -150,3 +150,8 @@ donde x es meramente categorica e y una variable continua o discreta.
 PARA ESCALA LOGARITMICA SE PONE plot(..,log = 'y',...)
 
 coplot(y ~ x | categorica, rows = 1) x e y son variables continuas entonces podes separar en distintos graficos para comparar variables continuas.
+
+Cuando tenemos un dataFrame y segmentamos una variable del tipo factor para crear otro dataframe, lo que tenemos que hacer es volverlo a factorear.
+
+
+
