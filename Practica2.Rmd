@@ -1,0 +1,168 @@
+---
+title: "Practica_2_Casa"
+output: html_document
+date: "2023-02-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rmarkdown)
+dataGrande <- read.csv('D:/Facultad/LaboDatos/Semana 2/ar_properties.csv')
+data <- dataGrande[is.element(dataGrande$l2,"Capital Federal") & is.element(dataGrande$operation_type,"Venta")&
+                    is.element(dataGrande$currency, "USD"),]
+paged_table(data)
+```
+
+Primero vamos a analizar como es el precio por metro cuadrado en el dataset.
+
+```{r}
+precioPorMetro <- data$price[data$surface_total!=0]/data$surface_total[data$surface_total!=0]
+precioPorMetro <- precioPorMetro[!is.na(precioPorMetro)]
+summary(precioPorMetro)
+boxplot(precioPorMetro,outline = FALSE)
+
+```
+
+El desvio estandar es:
+
+```{r}
+sd(precioPorMetro,na.rm=T)
+```
+
+
+La mayoria de las propiedades estan un precio de 2000 y 3200 dolares el metro cuadrado, hay una buena distribucion entre este rango de pr
+ecio, pero podemos ver que hay un gran desvio estandar, porque hay algunas propiedas cuyo valor por metro cuadrado es mas elevado, pero esto en sencillamente en ciertos casos muy puntuales
+
+Por otro lado, vamos a categorizar en caracterizar las propiedades en caras, baratas y promedio, para eso las promedio van a ser aquellas que esten +2000 y -1000 del valor promedio, aquellas superiores seran caras, y las inferiores seran baratas
+
+```{r}
+precioPromedio <- mean(precioPorMetro,na.rm = T) 
+propsPromedio <- precioPorMetro[precioPorMetro < precioPromedio + 2000 & precioPorMetro > precioPromedio - 1000]
+propsCaras <- precioPorMetro[precioPorMetro >= precioPromedio + 2000]
+propsBaratas <- precioPorMetro[precioPorMetro <= precioPromedio - 1000]
+boxplot(propsBaratas,propsPromedio,propsCaras,outline=F,names = c("Barata","Promedio","Cara"))
+```
+
+Vemos que las cajas son chicas porque hay mucha concentracion dentro de cada categoria.
+
+Ahora vamos a estudiar como es que la cantidad de habitaciones hace que salga mas cara o no la propiedad.
+
+```{r}
+plot(data$rooms,data$price,pch = 20,ylim = c(0,1.5e+6))
+```
+
+Se ve que no hay un comportamiento muy claro en funcion del precio con las habitaciones, pero quizas deberiamos filtrar por tipo de propiedad
+
+```{r}
+plot(data$rooms[is.element(data$property_type,"Casa")],data$price[is.element(data$property_type,"Casa")],pch = 20,ylim = c(0,1.8e+6),xlim=c(0,10))
+```
+Separando por tipo de propiedad casa, vemos que tampoco hay un parametro muy claro en funcion de las habitaciones.
+
+```{r}
+plot(data$rooms[is.element(data$property_type,"Departamento")],data$price[is.element(data$property_type,"Departamento")],pch = 20,ylim = c(0,1.8e+6),xlim=c(0,10))
+```
+Con los departamentos pasa lo mismo, podemos ver que no hay un patron claro de como es que evoluciona el precio, por lo tanto no depende de las habitaciones, debemos buscar otro parametro, que podria ser los barrios
+
+```{r}
+plot(data$rooms[is.element(data$l3,"Mataderos")],data$price[is.element(data$l3,"Mataderos")],pch = 20,ylim = c(0,2e+6),xlim=c(0,8))
+plot(data$rooms[is.element(data$l3,"Puerto Madero")],data$price[is.element(data$l3,"Puerto Madero")],pch = 20,ylim = c(0,2e+6),xlim=c(0,8))
+```
+
+Aca podemos ver una mayor diferencia de independencia entre las habitaciones y el precio de la propiedad, ya que vemos que en Mataderos las propiedades son mas baratas pero si tienen pocas habitaciones realmente el precio es menor, por lo que en un primer approach el precio depende de las habitaciones pero con una mirada local, y no global sobre toda la capital federal.
+
+```{r}
+plot(data$surface_covered,data$price,pch = 20, xlim=c(0,8000),log='y')
+```
+
+Podemos ver que levemente el precio va creciendo en funcion de la superficie cubierta, pero digamos sigue dependiendo de factores como la ubicacion de la propiedad ver porque tenemos una nube cubierta entre los 100 y 1000 metros cuadrados.
+
+Ahora veremos como cambia la superfie cubierta en funcion de las habitaciones.
+```{r}
+plot(data$rooms, data$surface_covered, pch = 20, ylim=c(0,1500))
+plot(data$rooms[data$l3 == "Mataderos"], data$surface_covered[data$l3 == "Mataderos"], pch = 20, ylim=c(0,1500),
+     main = "Superficie segun ambiente en Mataderos")
+plot(data$rooms[data$l3 == "Puerto Madero"], data$surface_covered[data$l3 == "Puerto Madero"], pch = 20, 
+ylim=c(0,1500), main = "Superficie segun ambiente en Puerto Madero")
+plot(data$rooms[data$l3 == "Colegiales"], data$surface_covered[data$l3 == "Colegiales"], pch = 20, 
+ylim=c(0,1500), main = "Superficie segun ambiente en Colegiales")
+
+```
+
+Vemos una mayor independencia de una variable respecto de la otra cuando separamos en funcion de los barrios.
+
+```{r}
+metroPorHabitacion <- data$surface_covered / data$rooms
+metroPorHabitacion <- metroPorHabitacion[!is.na(metroPorHabitacion)]
+sd(metroPorHabitacion)
+quantile(metroPorHabitacion, seq(0,1,0.1))
+```
+Vemos que la mayoria de propiedades estan en 15 metros cuadrados a 40 metros cuadrado por habitacion. Hay alguna que otra propiedad que tiene mayor area, pero en lo general no.
+
+Toca analizar, como se relacionan la superficie cubierta y la superficie total en funcion del tipo de propiedad.
+
+```{r}
+selector <- data$surface_total>data$surface_covered 
+plot(data$surface_covered[selector], data$surface_total[selector], pch = 20, xlim = c(0,4000), ylim = c(0,12000),main="Relacion de superficie total con cubierta")
+
+plot(data$surface_covered[selector & data$property_type == "PH"], data$surface_total[selector & data$property_type == "PH"], pch = 20, xlim = c(0,500), ylim = c(0,1000),main="Relacion de superficie total con cubierta PH")
+
+plot(data$surface_covered[selector & data$property_type == "Casa"], data$surface_total[selector & data$property_type == "Casa"], pch = 20, xlim = c(0,500), ylim = c(0,1000),main="Relacion de superficie total con cubierta Casa")
+
+plot(data$surface_covered[selector & data$property_type== "Departamento"], data$surface_total[selector & data$property_type == "Departamento"], pch = 20, xlim = c(0,500), ylim = c(0,1000),main="Relacion de superficie total con cubierta Departamento")
+
+
+```
+
+Toca analizar la cantidad de habitaciones en funcion a la cantidad de baños
+
+```{r}
+plot(data$rooms,data$bathrooms,pch = 20)
+
+```
+
+Es raro que haya mas banos que habitaciones
+
+Veamos los anuncios de ventas de departamentos
+```{r}
+deptos <- dataGrande[is.element(dataGrande$property_type,"Departamento"),c("start_date","end_date")]
+deptos$start_date <- as.Date(deptos$start_date)
+deptos$end_date <- as.Date(deptos$end_date)
+dias <- deptos$end_date - deptos$start_date
+```
+
+Todos aquellos dias que dan 2914879 son propiedades que todavia no han sido vendidas.
+
+```{r}
+inicioAnuncio <- weekdays(deptos$start_date)
+table(inicioAnuncio)
+```
+
+# Parte 2
+Cargamos los datos
+
+```{r}
+df <- dataGrande[is.element(dataGrande$l1,"Argentina") & (is.element(dataGrande$operation_type,"Venta") | is.element(dataGrande$operation_type, "Alquiler")),]
+df$l2 <- factor(df$l2)
+distribucion <- table(df$l2,df$operation_type,df$property_type)
+venta <- distribucion [,2,]
+alquiler <- distribucion [,1,]
+barplot((t(venta)),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Ventas")
+barplot(t(alquiler),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T,main = "Alquiler")
+```
+Vemos que en alquiler hay lotes y locales comerciales con muchos departamentos, pero en la parte de venta tenemos mas lotes y muchos departamentos.
+
+Comparemos ahora Catamarca y la Rioja y tambien Chaco y Santa Cruz
+
+```{r}
+barplot(t(distribucion[c("Catamarca","La Rioja"),1,]),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Alquiler")
+
+barplot(t(distribucion[c("Catamarca","La Rioja"),2,]),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Venta")
+
+barplot(t(distribucion[c("Santa Cruz","Chaco"),1,]),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Alquiler")
+
+barplot(t(distribucion[c("Santa Cruz","Chaco"),2,]),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Venta")
+```
+
