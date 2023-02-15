@@ -135,15 +135,16 @@ plot(vector) pone en eje x el indice y en y el valor, sirve para ver si estan or
 
 -Graficos
 boxplot(array, outline = ) 	La opción outline=FALSE nos permite graficar el boxplot sin los outliers.
-NA == a otra cosa, devuelve NA
+NA == a otra cosa, devuelve NA	
 is.element(array,elemento) devuelve un vector logico que te da TRUE si el elemento esta en el array y no tiene en cuenta los NA por lo tanto es bueno.
 <br /> es el /n para usar en markdown
 droplevels(variable factor) te saca los levels que ya no usas de una variable del tipo factor
 
-hist(datos,main = titulo,xlab,ylab,breaks = como subdividis es un numero cualquiera, xlim)
+hist(datos,main = titulo,xlab,ylab,breaks = como subdividis es un numero cualquiera, xlim, frec = T or F)
+frec te dice si queres un histograma de area(F) o si queres un diagrama de frecuencia (T).
 
 barplot(table(dato), mismos arg que hist)
-
+abline(h = o V =) dibujar un linea, si es h es horizontal, sino v para vertical.
 boxplot(variable continua ~ variable categorica, cex.axis = numero) cex.axis es el tamano de la letra, y el ~ siginifica un grafico (x,y) y seria como y ~ x, es una formula
 donde x es meramente categorica e y una variable continua o discreta.
 
@@ -153,5 +154,50 @@ coplot(y ~ x | categorica, rows = 1) x e y son variables continuas entonces pode
 
 Cuando tenemos un dataFrame y segmentamos una variable del tipo factor para crear otro dataframe, lo que tenemos que hacer es volverlo a factorear.
 
+
+-------Semana 3
+-- Visualizacion de graficos.
+par(mfrow = c(fila,columna)) pero queda guardado, por lo cual despues te conviene resetear con par(mfrow = c(1,1))
+
+Comparacion de variables categoricas se hace con grafico de mosaico
+mosaicplot(tabla, col = #categorias) -> la tabla debe ser de doble entrada.
+pie(diagrama torta) #no le gusta a los profes
+
+--GGPLOT 2
+lo parecido a plot en ggplot en qplot
+qplot(x, y = NULL, data, facets = NULL, margins = FALSE,   geom = "auto", xlim = c(NA, NA), ylim = c(NA, NA),    main = NULL, xlab = ,   ylab = , stat = NULL)
+
+ggplot(data, aes, geom,facet,estadistica,coordenadas,temas, shape es pch, size)
+
+aes -- como se relacionan las variables de forma estetica.
+data -- que base de datos.
+geom -- le das el tipo de grafico
+
+attach(dataframe) #te define como por nombres separados las variables del dataset, las intepreta por separado, el problema es si la base de datos tienen variables de nombres reservados o que al trabajar varias bases de datos, hay que tener cuidado de que las variables no tengan mismo nombre
+
+ggplot funciona por capas y solo para dataframes.
+ggplot(dataframe, aes(x = ,y =, fill=variableFactor)) +
+	geom_boxplot(detalles para boxplot) +
+	theme_light() + 
+	labs(x= , y = )
+	
+color es para bordes y fill para el color 
+
+theme(legend.position = "none") -- te saca las leyendas
+xlab()
+ylab()
+ggtitle()
+theme_light() -- saca el fondo gris.
+geom_smooth(se =F,inherit.aes = F,aes(x=,y=)) -- SE saca el griseaceo, inherit.aes te saca lo que tenes en plot.
+grid.arrange(graf1,grafi2,...,nrow = , ncol= )
+arrangeGrob(g7,g6,ncol=2,nrow=1) esto se pone dentro de grid.arrange para poder separar grafico impares.
+scale_fill_brewer(palette="Dark2")
+
+--Violin lindo
+ggplot(data = pengu, aes(x = species,y=bill_depth_mm,fill = species)) +
+  geom_violin(trim = FALSE) +
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  geom_boxplot(width=0.1, fill="white")+
+  theme_light()+ xlab("Especies")+ylab("Profundidad del pico")+theme(legend.position = "none")
 
 
