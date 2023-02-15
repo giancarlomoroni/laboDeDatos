@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
 
 ```{r}
@@ -19,9 +20,14 @@ paged_table(pengu)
 ```
 
 ```{r}
-ggplot(data=pengu,aes(x=body_mass_g,y=flipper_length_mm,color = species ))+
+ggplot(data=pengu,aes(x=body_mass_g,y=flipper_length_mm,color = species))+
   geom_jitter()+
-  geom_smooth(se =F,inherit.aes = F,aes(x=body_mass_g,y=flipper_length_mm))
+  geom_smooth(se =F,inherit.aes = F,aes(x=body_mass_g,y=flipper_length_mm))+
+  ggtitle("Comportamiento de las aletas en funcion del peso")+
+  xlab("Peso")+
+  ylab("Largo aleta (mm)")+
+  theme(plot.title = element_text(hjust = 0.5))+theme_light()
+  
 ```
 
 Podemos un comportamiento lineal entre la masa y las aletas del pinguino ya que a medida que pesa mas, tendra una mayor aleta. Tiene bastante logica, es un primer approach.
@@ -29,15 +35,22 @@ Podemos un comportamiento lineal entre la masa y las aletas del pinguino ya que 
 
 ```{r}
 
-ggplot(data=pengu,aes(x=bill_depth_mm,y=bill_length_mm,color = species ))+
+f1 <- ggplot(data=pengu,aes(x=bill_depth_mm,y=bill_length_mm,color = species ))+
   geom_jitter()+
-   geom_smooth(se =F,inherit.aes = F,aes(x=bill_depth_mm,y=bill_length_mm))
+  geom_smooth(se=F)+
+  theme(plot.title = element_text(hjust = 0.5))+theme_light()+
+  xlab("Profundidad pico (mm)")+
+  ylab("Largo pico (mm)")
 
-ggplot(data=pengu,aes(x=flipper_length_mm,y=bill_length_mm,color = species ))+
+f2 <- ggplot(data=pengu,aes(x=flipper_length_mm,y=bill_length_mm,color = species ))+
   geom_jitter()+
-  geom_smooth(se =F,inherit.aes = F,aes(x=flipper_length_mm,y=bill_length_mm))
+  geom_smooth(se =F,inherit.aes = F,aes(x=flipper_length_mm,y=bill_length_mm))+
+  theme_light()+
+  xlab("Largo aleta")+
+  ylab("Largo pico (mm)")
 
 
+grid.arrange(f1,f2,ncol =1,nrow=2,top="Comportamiento del largo del pico")
 ```
 
 Vemos que tenes subdividido en categorias en funcion de las especies y cuanto miden sus alas en referencia a su pico. En el primer grafico el largo del pico se estanca a medida que es mas ancho, pero en el caso de que las alas sean mas grande, tenemos el caso que tenemos un pico mas largo y se ve bien el
@@ -46,55 +59,78 @@ Vemos que tenes subdividido en categorias en funcion de las especies y cuanto mi
 
 g1 <- ggplot(data=pengu,aes(x=flipper_length_mm,y=bill_depth_mm,color = species ))+
   geom_jitter()+
-  geom_smooth(se=F)
+  geom_smooth(se=F)+
+  theme(plot.title = element_text(hjust = 0.5))+theme_light()+
+  xlab("Largo aleta(mm)")+
+  ylab("Profundidad de pico(mm)")
+
 
 g2 <- ggplot(data=pengu,aes(x=body_mass_g,y=bill_depth_mm,color = species ))+
   geom_jitter()+
-  geom_smooth(se=F)
+  geom_smooth(se=F)+
+  theme_light()+
+  xlab("Peso")+
+  ylab("Profundidad de pico(mm)")
 
-grid.arrange(g1,g2,ncol=1,nrow=2)
+grid.arrange(g1,g2,ncol=1,nrow=2,top="Comportamiento del ancho del pico")
 ```
 
 Vemos que el ancho del pico depende claramente de tres factores importantes que son el peso, las alas y la especie.
 
 ```{r}
 g3 <-  ggplot(data = pengu, aes(x = species,y=bill_length_mm,fill = species)) +
-  geom_violin(trim = FALSE)+
+  geom_violin(trim = FALSE,)+
   scale_fill_brewer(palette="Dark2") + theme_light()+
-  geom_boxplot(width=0.1, fill="white")
+  geom_boxplot(width=0.1, fill="white")+
+  theme_light()+xlab("Especies")+ylab("Largo del pico")+theme(legend.position = "none")
   
 
 g4 <- ggplot(data = pengu, aes(x = species,y=bill_depth_mm,fill = species)) +
   geom_violin(trim = FALSE) +
-  scale_fill_brewer(palette="Reds") + theme_light()+
-  geom_boxplot(width=0.1, fill="white")
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  geom_boxplot(width=0.1, fill="white")+
+  theme(plot.title = element_text(hjust = 0.5))+theme_light()+ xlab("Especies")+ylab("Profundidad del pico")+theme(legend.position = "none")
 
-grid.arrange(g3,g4,ncol=2,nrow=1)
+grid.arrange(g3,g4,ncol=2,nrow=1,top="Pico en funcion a la especie")
 ```
 
 ```{r}
 tablaEspecies <- as.data.frame(table(pengu$species,pengu$island))
-tablaEspecies
 
-ggplot(data=tablaEspecies, aes(x=Var2,y=Freq,fill=Var1))+
-  geom_bar(stat = "identity")
 
-ggplot(data = pengu, aes(x = island,y=bill_length_mm,fill = island)) +
-  geom_violin()
+g5 <- ggplot(data=tablaEspecies, aes(x=Var2,y=Freq,fill=Var1))+
+  geom_bar(stat = "identity")+
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  xlab("Islas")+ylab("Profunidad del pico")+scale_fill_discrete(name = "Especies")
 
-ggplot(data = pengu, aes(x = island,y=bill_depth_mm,fill = island)) +
-  geom_violin()
+g6 <- ggplot(data = pengu, aes(x = island,y=bill_length_mm,fill = island)) +
+  geom_violin(trim = F)+
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  geom_boxplot(width=0.1, fill="white")+
+  xlab("Islas")+ylab("Largo del pico")+theme(legend.position = "none")
 
+g7 <- ggplot(data = pengu, aes(x = island,y=bill_depth_mm,fill = island)) +
+  geom_violin(trim = F)+
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  geom_boxplot(width=0.1, fill="white")+xlab("Islas")+ylab("Profundidad Pico")+theme(legend.position = "none")
+
+grid.arrange(arrangeGrob(g7,g6,ncol=2,nrow=1),g5,ncol =1,nrow = 2)
 ```
 
 ```{r}
-ggplot(data = subset(pengu,!is.na(sex)), aes(x = sex,y=body_mass_g,fill = sex)) +
-  geom_violin()
+p5 <- ggplot(data = subset(pengu,!is.na(sex)), aes(x = sex,y=body_mass_g,fill = sex)) +
+  geom_violin(trim=F)+
+  theme_light()+
+  geom_boxplot(width=0.05, fill="white")+xlab("Sexo")+ylab("Peso") +theme(legend.position = "none")
 #Usamos subset para remover los na del grafico. Solo es para hacer un select del data frame.
 
 
-ggplot(data = pengu, aes(x = species,y=body_mass_g,fill = species)) +
-  geom_violin()
+p6 <- ggplot(data = pengu, aes(x = species,y=body_mass_g,fill = species)) +
+   geom_violin(trim = F)+
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  geom_boxplot(width=0.05, fill="white")+theme(legend.position = "none")+xlab("Especie")+ylab("Peso")
+
+grid.arrange(p5,p6,ncol=1,nrow=2)
 ```
 
 

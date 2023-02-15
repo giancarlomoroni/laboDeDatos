@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(rmarkdown)
 library(ggplot2)
-dataGrande <- read.csv('D:/Facultad/LaboDatos/Semana 2/ar_properties.csv')
+dataGrande <- read.csv('/media/clinux01/UBUNTU 22_0/Semana 2/ar_properties.csv')
 data <- dataGrande[is.element(dataGrande$l2,"Capital Federal") & is.element(dataGrande$operation_type,"Venta")&
                     is.element(dataGrande$currency, "USD"),]
 paged_table(data)
@@ -185,6 +185,7 @@ Cargamos los datos
 df <- dataGrande[is.element(dataGrande$l1,"Argentina") & (is.element(dataGrande$operation_type,"Venta") | is.element(dataGrande$operation_type, "Alquiler")),]
 df$l2 <- factor(df$l2)
 distribucion <- table(df$l2,df$operation_type,df$property_type)
+distribucion
 venta <- distribucion [,2,]
 alquiler <- distribucion [,1,]
 barplot((t(venta)),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Ventas")
