@@ -1,0 +1,101 @@
+---
+title: "TP Visualizacion de Datos"
+author: "Giancarlo Moroni"
+date: "2023-02-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(GGally)
+library(gridExtra)
+library(rmarkdown)
+pengu <- palmerpenguins::penguins
+paged_table(pengu)
+```
+
+```{r}
+ggplot(data=pengu,aes(x=body_mass_g,y=flipper_length_mm,color = species ))+
+  geom_jitter()+
+  geom_smooth(se =F,inherit.aes = F,aes(x=body_mass_g,y=flipper_length_mm))
+```
+
+Podemos un comportamiento lineal entre la masa y las aletas del pinguino ya que a medida que pesa mas, tendra una mayor aleta. Tiene bastante logica, es un primer approach.
+
+
+```{r}
+
+ggplot(data=pengu,aes(x=bill_depth_mm,y=bill_length_mm,color = species ))+
+  geom_jitter()+
+   geom_smooth(se =F,inherit.aes = F,aes(x=bill_depth_mm,y=bill_length_mm))
+
+ggplot(data=pengu,aes(x=flipper_length_mm,y=bill_length_mm,color = species ))+
+  geom_jitter()+
+  geom_smooth(se =F,inherit.aes = F,aes(x=flipper_length_mm,y=bill_length_mm))
+
+
+```
+
+Vemos que tenes subdividido en categorias en funcion de las especies y cuanto miden sus alas en referencia a su pico. En el primer grafico el largo del pico se estanca a medida que es mas ancho, pero en el caso de que las alas sean mas grande, tenemos el caso que tenemos un pico mas largo y se ve bien el
+
+```{r}
+
+g1 <- ggplot(data=pengu,aes(x=flipper_length_mm,y=bill_depth_mm,color = species ))+
+  geom_jitter()+
+  geom_smooth(se=F)
+
+g2 <- ggplot(data=pengu,aes(x=body_mass_g,y=bill_depth_mm,color = species ))+
+  geom_jitter()+
+  geom_smooth(se=F)
+
+grid.arrange(g1,g2,ncol=1,nrow=2)
+```
+
+Vemos que el ancho del pico depende claramente de tres factores importantes que son el peso, las alas y la especie.
+
+```{r}
+g3 <-  ggplot(data = pengu, aes(x = species,y=bill_length_mm,fill = species)) +
+  geom_violin(trim = FALSE)+
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  geom_boxplot(width=0.1, fill="white")
+  
+
+g4 <- ggplot(data = pengu, aes(x = species,y=bill_depth_mm,fill = species)) +
+  geom_violin(trim = FALSE) +
+  scale_fill_brewer(palette="Reds") + theme_light()+
+  geom_boxplot(width=0.1, fill="white")
+
+grid.arrange(g3,g4,ncol=2,nrow=1)
+```
+
+```{r}
+tablaEspecies <- as.data.frame(table(pengu$species,pengu$island))
+tablaEspecies
+
+ggplot(data=tablaEspecies, aes(x=Var2,y=Freq,fill=Var1))+
+  geom_bar(stat = "identity")
+
+ggplot(data = pengu, aes(x = island,y=bill_length_mm,fill = island)) +
+  geom_violin()
+
+ggplot(data = pengu, aes(x = island,y=bill_depth_mm,fill = island)) +
+  geom_violin()
+
+```
+
+```{r}
+ggplot(data = subset(pengu,!is.na(sex)), aes(x = sex,y=body_mass_g,fill = sex)) +
+  geom_violin()
+#Usamos subset para remover los na del grafico. Solo es para hacer un select del data frame.
+
+
+ggplot(data = pengu, aes(x = species,y=body_mass_g,fill = species)) +
+  geom_violin()
+```
+
+
+

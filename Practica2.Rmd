@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(rmarkdown)
+library(ggplot2)
 dataGrande <- read.csv('D:/Facultad/LaboDatos/Semana 2/ar_properties.csv')
 data <- dataGrande[is.element(dataGrande$l2,"Capital Federal") & is.element(dataGrande$operation_type,"Venta")&
                     is.element(dataGrande$currency, "USD"),]
@@ -52,6 +53,43 @@ Ahora vamos a estudiar como es que la cantidad de habitaciones hace que salga ma
 
 ```{r}
 plot(data$rooms,data$price,pch = 20,ylim = c(0,1.5e+6))
+roomPrice <- data$price / data$rooms
+data <- cbind(data,roomPrice)
+boxplot(roomPrice,outline=F,main="Precio por habitacion")
+vec <- c()
+barrios <- c()
+data$l3 <- factor(data$l3)
+
+vec <- c()
+barrios <- c()
+data$l3 <- factor(data$l3)
+for(i in levels(data$l3)){
+  vec <- c(vec,mean(data[is.element(data$l3,i),'roomPrice'],na.rm=T))
+  barrios <- c(barrios,i)  
+}
+grafico <- data.frame("Promedio" = vec, "Barrios" = barrios)
+grafico$Barrios <- factor(grafico$Barrios)
+ggplot(data = grafico, aes(x=Barrios,y=Promedio, fill = Barrios))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle=75,vjust=0.5), legend.position = "none")
+
+
+vec2 <- c()
+propiedad <- c()
+data$property_type <- factor(data$property_type)
+for(i in levels(data$property_type)){
+  vec2 <- c(vec2,mean(data[is.element(data$property_type,i),'roomPrice'],na.rm=T))
+  propiedad <- c(propiedad,i)  
+}
+vec2
+
+grafico2 <- data.frame("Promedio" = vec2, "Propiedad" = propiedad)
+grafico2$Propiedad <- as.factor(grafico2$Propiedad)
+ggplot(data = grafico2, aes(x=Propiedad,y=Promedio, fill = Propiedad))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle=75,vjust=0.5), legend.position = "none")
+
+
 ```
 
 Se ve que no hay un comportamiento muy claro en funcion del precio con las habitaciones, pero quizas deberiamos filtrar por tipo de propiedad
@@ -164,5 +202,10 @@ barplot(t(distribucion[c("Catamarca","La Rioja"),2,]),las=2,cex.names = 0.6, col
 barplot(t(distribucion[c("Santa Cruz","Chaco"),1,]),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Alquiler")
 
 barplot(t(distribucion[c("Santa Cruz","Chaco"),2,]),las=2,cex.names = 0.6, col = c(1,2,3,4,5,6,7,8,9,10),legend = T, main = "Venta")
+```
+
+```{r}
+df$l2 <- factor(df$l2)
+levels(df$l2)
 ```
 
