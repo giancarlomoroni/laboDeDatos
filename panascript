@@ -1,0 +1,13 @@
+datos2 <- data %>% 
+  # Me quedo con los que pertenecen a Argentina, Capital Federal y Boedo
+  filter(l1 == "Argentina", 
+         l2 == "Capital Federal",
+         l3=="Boedo",
+         # cuyo precio este en dolares 
+         currency == "USD", 
+         # propiedad tipo Casa
+         property_type %in% c("Casa"),
+         # operaciones de venta
+         operation_type == "Venta") %>% 
+  dplyr::select(id, l3, surface_total, surface_covered,lat,lon, price) %>% mutate(Precio=price,Sup=surface_covered,Fondo=surface_total-surface_covered,Lat = lat,Lon = lon) %>% 
+  dplyr::select(Sup,Fondo,Precio,Lat,Lon) %>%  filter(Fondo>=0) %>% na.omit()
