@@ -1,0 +1,211 @@
+---
+title: "Presentacion"
+author: "Giancarlo Moroni"
+date: "2023-03-10"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE,message = F,echo = FALSE)
+```
+
+## Librerias
+
+```{r,echo=F}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(rmarkdown)
+library(GGally)
+library(corrplot)
+library(plotly)
+library(ggmosaic)
+library(Hmisc)
+library(caret)
+library(highcharter)
+library(hexbin)
+library(cluster)
+```
+## Datos
+```{r}
+datosNumericos <- read.csv("D:/Facultad/LaboDatos/Datasets/ACVPrediction.csv")
+datos <- datosNumericos
+paged_table(datos[1:10,])
+```
+
+```{r,echo=F}
+datos$age <- as.integer(datos$age)
+datos$gender <- factor(datos$gender,levels=c("Male","Female"))
+datos$bmi <- as.numeric(datos$bmi)
+datos[,"smoking_status"] <- factor(datos[,"smoking_status"])
+datos[,"hypertension"] <- factor(datos[,"hypertension"])
+datos[,"heart_disease"] <- factor(datos[,"heart_disease"],levels=c(0,1))
+datos[,"ever_married"] <- factor(datos[,"ever_married"])
+datos[,"work_type"] <- factor(datos[,"work_type"])
+datos[,"Residence_type"] <- factor(datos[,"Residence_type"])
+datos[,"smoking_status"] <- factor(datos[,"smoking_status"])
+datos[,"stroke"] <- factor(datos[,"stroke"])
+datosStroke <- datos[datos$stroke==1,]
+datosNoStroke <- datos[datos$stroke==0,]
+datosNumericos$gender <- replace(datosNumericos$gender,datosNumericos$gender == "Male",0)
+datosNumericos$gender <- replace(datosNumericos$gender,datosNumericos$gender == "Female",1)
+datosNumericos$gender <- as.numeric(datosNumericos$gender)
+
+datosNumericos$ever_married <- replace(datosNumericos$ever_married,datosNumericos$ever_married == "Yes",1)
+datosNumericos$ever_married <- replace(datosNumericos$ever_married,datosNumericos$ever_married == "No",0)
+datosNumericos$ever_married <- as.numeric(datosNumericos$ever_married)
+
+datosNumericos$Residence_type <- replace(datosNumericos$Residence_type,datosNumericos$Residence_type == "Urban",1)
+datosNumericos$Residence_type <- replace(datosNumericos$Residence_type,datosNumericos$Residence_type == "Rural",0)
+datosNumericos$Residence_type <- as.numeric(datosNumericos$Residence_type)
+
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "children",0)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Govt_job",1)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Never_worked",2)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Private",3)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Self-employed",4)
+datosNumericos$work_type <- as.numeric(datosNumericos$work_type)
+
+datosNumericos$bmi <- as.numeric(datosNumericos$bmi)
+
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "formerly smoked",0)
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "never smoked",1)
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "smokes",2)
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "Unknown",3)
+datosNumericos$smoking_status <- as.numeric(datosNumericos$smoking_status)
+#Limpio Nas
+datosNumericos <-  datosNumericos[!is.na(datosNumericos$bmi),]
+#Hago feature scaling
+datosNumericos$age <- (datosNumericos$age - min(datosNumericos$age)) / (max(datosNumericos$age)-min(datosNumericos$age))
+datosNumericos$bmi <- (datosNumericos$bmi - min(datosNumericos$bmi)) / (max(datosNumericos$bmi)-min(datosNumericos$bmi))
+datosNumericos$avg_glucose_level <- (datosNumericos$avg_glucose_level - min(datosNumericos$avg_glucose_level)) / (max(datosNumericos$avg_glucose_level)-min(datosNumericos$avg_glucose_level))
+```
+
+# Analisis descriptivo
+## Distribucion de las variables
+
+```{r}
+g1 <- ggplot(datos, aes(x=age,fill=stroke)) + geom_histogram(color="darkblue",binwidth = 4,aes(y= (..count..)/sum(..count..)))+theme_light()+ylab("Frecuencia")+xlab("Edad")+scale_fill_brewer(palette="Dark2")
+
+
+g2 <- ggplot(datos, aes(x=age,fill=hypertension)) + geom_histogram(color="darkblue",binwidth = 4,aes(y= (..count..)/sum(..count..)))+theme_light()+ylab("Frecuencia")+xlab("Edad")+scale_fill_brewer(palette="Pastel1")
+
+  #ggplot(datos, aes(x=gender, y=age, color=stroke)) + geom_boxplot(outlier.shape = NA)+
+  #labs(title = "Distribucion de la edad por genero y si tuvieron o no un ACV", x="Genero", y="Edad")+scale_colour_brewer(palette="Dark2")
+
+  g3 <-  ggplot(data = datos) +scale_fill_brewer(palette="Dark2") + 
+  geom_mosaic(aes(x = product(stroke, hypertension), fill=stroke))+theme(legend.position="none") + scale_fill_brewer(palette="Dark2")
+  
+g4 <- ggplot(data = datos) +scale_fill_brewer(palette="Dark2") + 
+  geom_mosaic(aes(x = product(stroke, heart_disease), fill=stroke))+theme(legend.position="none") + scale_fill_brewer(palette="Dark2")
+
+grid.arrange(g1,g2,g3,g4,nrow=2)
+```
+
+## 2
+
+```{r}
+g1 <- ggplot(subset(datos,!is.na(smoking_status)))+geom_mosaic(aes(x=product(stroke,smoking_status),fill=stroke))+scale_fill_brewer(palette="Dark2")
+ 
+g3 <- ggplot(datos)+geom_mosaic(aes(x=product(stroke,work_type),fill=stroke))+scale_fill_brewer(palette="Dark2")
+
+grid.arrange(g1,g3,nrow=2)
+```
+
+## 3
+
+```{r}
+g1 <- ggplot(datos, aes(x=gender, y=age, color=stroke)) + geom_boxplot(outlier.shape = NA)+
+  labs(title = "Distribucion de la edad por genero y si tuvieron o no un ACV", x="Genero", y="Edad")+scale_colour_brewer(palette="Dark2")
+g1
+```
+
+
+## 4
+
+```{r}
+
+gluc_female_S <- pull(filter(datos, gender=="Female", stroke==1), avg_glucose_level)
+gluc_female <- pull(filter(datos, gender=="Female", stroke==0), avg_glucose_level)
+gluc_male_S <- pull(filter(datos, gender=="Male", stroke==1), avg_glucose_level)
+gluc_male <- pull(filter(datos, gender=="Male",stroke==0), avg_glucose_level)
+
+
+hchart(density(gluc_female, na.rm = T), type = "area", name = "female no Stroke") |>
+  hc_add_series(density(gluc_female_S, na.rm = T), type = "area", name = "Female Stroke") |> 
+  hc_add_series(density(gluc_male, na.rm = T), type = "area", name = "male no stroked") |> 
+  hc_add_series(density(gluc_male_S, na.rm = T), type = "area", name = "male Stroked")|>
+  hc_title(text = "Titulo")
+```
+
+
+## 5 
+
+```{r}
+
+g1 <- ggplot(datosNoStroke,aes(bmi,avg_glucose_level))+
+  geom_jitter() +
+  theme_light() + 
+  coord_cartesian(ylim=c(50,280),xlim=c(10,60)) + scale_colour_brewer(palette="Dark2")
+
+#Cluster 
+set.seed(1)
+grupos <- factor(kmeans(datos$avg_glucose_level,centers = 2)[[1]])
+g2 <- ggplot(datos,aes(bmi,avg_glucose_level,color=grupos))+
+  geom_point() +
+  theme_light() + 
+  coord_cartesian(ylim=c(50,280),xlim=c(10,60))+scale_colour_brewer(palette="Dark2") + geom_abline()
+
+
+
+grid.arrange(g1,g2,ncol=2)
+
+```
+
+## 7
+
+
+```{r}
+diabetes <- factor(grupos,levels=c("1","2"),labels=c("diabeticos","no diabeticos"))
+grupo1 <- datos[grupos == 1,]
+grupo2 <- datos[grupos == 2,]
+datosConDiabetes <- cbind(datos,diabetes)
+
+g1 <- ggplot(datos, aes(avg_glucose_level,fill = diabetes)) + 
+  geom_density(alpha = 0.5) + scale_fill_manual(values = c("darkviolet","chartreuse2" ))
+g2 <- ggplot(datosConDiabetes,aes(diabetes,age,fill = diabetes)) + geom_violin(trim = FALSE) + geom_boxplot(width = 0.05,fill = "white") +scale_fill_manual(values = c("darkviolet","chartreuse2" ))
+
+g3 <- ggplot(grupo1,aes(stroke,fill=stroke))+geom_bar(aes(y=(..count..)/sum(..count..))) + ggtitle("Diabeticos") +scale_fill_brewer(palette="Dark2")
+g4 <- ggplot(grupo2,aes(stroke,fill = stroke))+geom_bar(aes(y=(..count..)/sum(..count..))) + ggtitle("No Diabeticos") +scale_fill_brewer(palette="Dark2")
+
+grid.arrange(g1,g2,g3,g4,nrow=2,ncol=2)
+```
+
+## 8
+
+
+```{r}
+grupo1Vec <- c()
+for (i in c("bmi","avg_glucose_level","age")){
+  grupo1Vec[length(grupo1Vec)+1] <- mean(grupo1[,i],na.rm=T)
+}
+grupo2Vec <- c()
+for (i in c("bmi","avg_glucose_level","age")){
+  grupo2Vec[length(grupo2Vec)+1] <- mean(grupo2[,i],na.rm=T)
+}
+
+df <- data.frame(Variables = c("BMI","Glucosa","Edad"),Diabeticos = grupo1Vec, No_Diabeticos = grupo2Vec )
+paged_table(df)
+```
+
+
+
+Una vez tenemos los grupos, histograma de edades.
+
+
+
+Falta:
+
+-Limpiar ejes y titulos
+-Hacer presentacion del dataset
+-
