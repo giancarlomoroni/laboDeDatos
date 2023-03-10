@@ -1,0 +1,416 @@
+---
+title: "ACVNotebook"
+author: "Giancarlo Moroni"
+date: "2023-03-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = F, message = F, echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(rmarkdown)
+library(GGally)
+library(corrplot)
+library(plotly)
+library(ggmosaic)
+library(Hmisc)
+library(caret)
+```
+
+
+```{r}
+datosNumericos <- read.csv("D:/Facultad/LaboDatos/Datasets/ACVPrediction.csv")
+datos <- datosNumericos
+paged_table(datos)
+```
+
+```{r, include=F}
+datos$age <- as.integer(datos$age)
+datos$gender <- factor(datos$gender,levels=c("Male","Female"))
+datos$bmi <- as.numeric(datos$bmi)
+datos[,"smoking_status"] <- factor(datos[,"smoking_status"])
+datos[,"hypertension"] <- factor(datos[,"hypertension"])
+datos[,"heart_disease"] <- factor(datos[,"heart_disease"],levels=c(0,1))
+datos[,"ever_married"] <- factor(datos[,"ever_married"])
+datos[,"work_type"] <- factor(datos[,"work_type"])
+datos[,"Residence_type"] <- factor(datos[,"Residence_type"])
+datos[,"smoking_status"] <- factor(datos[,"smoking_status"])
+datos[,"stroke"] <- factor(datos[,"stroke"])
+datosStroke <- datos[datos$stroke==1,]
+datosNoStroke <- datos[datos$stroke==0,]
+```
+
+```{r}
+datosNumericos$gender <- replace(datosNumericos$gender,datosNumericos$gender == "Male",0)
+datosNumericos$gender <- replace(datosNumericos$gender,datosNumericos$gender == "Female",1)
+datosNumericos$gender <- as.numeric(datosNumericos$gender)
+
+datosNumericos$ever_married <- replace(datosNumericos$ever_married,datosNumericos$ever_married == "Yes",1)
+datosNumericos$ever_married <- replace(datosNumericos$ever_married,datosNumericos$ever_married == "No",0)
+datosNumericos$ever_married <- as.numeric(datosNumericos$ever_married)
+
+datosNumericos$Residence_type <- replace(datosNumericos$Residence_type,datosNumericos$Residence_type == "Urban",1)
+datosNumericos$Residence_type <- replace(datosNumericos$Residence_type,datosNumericos$Residence_type == "Rural",0)
+datosNumericos$Residence_type <- as.numeric(datosNumericos$Residence_type)
+
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "children",0)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Govt_job",1)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Never_worked",2)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Private",3)
+datosNumericos$work_type <- replace(datosNumericos$work_type,datosNumericos$work_type == "Self-employed",4)
+datosNumericos$work_type <- as.numeric(datosNumericos$work_type)
+
+datosNumericos$bmi <- as.numeric(datosNumericos$bmi)
+
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "formerly smoked",0)
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "never smoked",1)
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "smokes",2)
+datosNumericos$smoking_status <- replace(datosNumericos$smoking_status,datosNumericos$smoking_status == "Unknown",3)
+datosNumericos$smoking_status <- as.numeric(datosNumericos$smoking_status)
+```
+
+```{r}
+#Limpio Nas
+datosNumericos <-  datosNumericos[!is.na(datosNumericos$bmi),]
+#Hago feature scaling
+datosNumericos$age <- (datosNumericos$age - min(datosNumericos$age)) / (max(datosNumericos$age)-min(datosNumericos$age))
+datosNumericos$bmi <- (datosNumericos$bmi - min(datosNumericos$bmi)) / (max(datosNumericos$bmi)-min(datosNumericos$bmi))
+datosNumericos$avg_glucose_level <- (datosNumericos$avg_glucose_level - min(datosNumericos$avg_glucose_level)) / (max(datosNumericos$avg_glucose_level)-min(datosNumericos$avg_glucose_level))
+```
+
+
+```{r}
+index <- sample(which(datosNumericos$stroke == 0),sum(datosNumericos$stroke == 1)*2)
+datosAcotados <-  datosNumericos[c(which(datosNumericos$stroke == 1),index),]
+correlacion <- rcorr(as.matrix(datosAcotados[,-1]))
+corrplot(correlacion$r)
+```
+
+
+Empezamos viendo como es la distribucion del dataset en funcion de la edad y que cantidad de ACVs habia en los distintos rangos etarios.
+
+```{r}
+ggplot(datos, aes(x=age,fill=factor(stroke))) + geom_histogram(color="darkblue",binwidth = 4,aes(y= (..count..)/sum(..count..)))+theme_light()+ylab("Frecuencia")+xlab("Edad")+scale_fill_brewer(palette="Dark2")
+
+```
+
+Luego queremos ver que tipo de muestras hay en funcion al genero.
+
+```{r}
+ggplot(datos, aes(x=age,fill=gender,color=gender)) + geom_histogram(position="identity", alpha=0.4,aes(y= (..count..)/sum(..count..)))+theme_light()+ylab("Frecuencia")+xlab("Edad")+scale_fill_brewer(palette="Dark2")
+
+ggplot(data = datos, aes(x = stroke,y=age,fill = stroke)) +
+  geom_violin(trim = FALSE) +
+  scale_fill_brewer(palette="Dark2") + theme_light()+
+  geom_boxplot(width=0.05, fill="white")+
+  theme_light()+ xlab("Tuvo o no ACV")+ylab("Edad")+theme(legend.position = "none")
+
+ggplot(datos, aes(x=age,fill=stroke)) + geom_histogram(color="darkblue",binwidth = 4,aes(y= (..count..)/sum(..count..)))+theme_light()+ylab("Frecuencia")+xlab("Edad")+scale_fill_brewer(palette="Dark2")
+
+```
+
+```{r}
+summary(datos[,c("bmi","age","avg_glucose_level")])
+```
+
+Salta que tenemos alguna observacion que tiene edad 0, habria que ver si se trata de un bebe o de un fallo de carga de datos. Luego hay que tener cuidado porque BMI tiene 201 entradas con Nas.
+
+```{r}
+g1 <- ggplot(datos,aes(work_type,fill=work_type))+
+  geom_bar()+
+  theme_light()+
+  theme(legend.position="none")+
+  scale_colour_gradient2()+
+  coord_flip()+scale_fill_brewer(palette="Dark2")
+
+g2 <- ggplot(datos,aes(heart_disease,fill=heart_disease))+geom_bar()+theme_light()+theme(legend.position="none")+
+  scale_fill_brewer(palette="Dark2")
+g3 <- ggplot(datos,aes(Residence_type,fill=Residence_type))+geom_bar()+theme_light()+theme(legend.position="none")+
+  scale_fill_brewer(palette="Dark2")
+grid.arrange(arrangeGrob(g2,g3,nrow=1,ncol=2),g1)
+```
+
+
+```{r}
+
+g1 <- ggplot(data = datos) +
+  geom_mosaic(aes(x = product(stroke, heart_disease), fill=stroke))+theme(legend.position="none")+scale_fill_brewer(palette="Dark2")
+
+g2 <- ggplot(data = datos) +
+  geom_mosaic(aes(x = product(stroke, smoking_status), fill=stroke))+theme(legend.position="none")
+grid.arrange(g1,g2,ncol=1)
+ ggplot(data = datos) +scale_fill_brewer(palette="Dark2") + 
+  geom_mosaic(aes(x = product(stroke, hypertension), fill=stroke))+theme(legend.position="none") + scale_fill_brewer(palette="Dark2")
+```
+
+```{r}
+ggplot(datos, aes(x=avg_glucose_level,fill=stroke)) + geom_histogram(position="identity",color="black", alpha=0.5,aes(y = after_stat(density * width)))+theme_light()+ylab("Frecuencia")+xlab("Glucosa") +scale_fill_brewer(palette="Dark2")
+```
+
+
+```{r}
+ggplot(datos,aes(bmi,avg_glucose_level,color=ever_married))+
+  geom_point() +
+  theme_light() + 
+  coord_cartesian(ylim=c(50,280),xlim=c(10,60)) + scale_colour_brewer(palette="Dark2")
+
+ggplot(datos,aes(bmi,avg_glucose_level,color=ever_married))+
+  geom_point(shape = 16, size = 0.6, show.legend = FALSE,alpha=0.4) +
+  theme_light() + 
+  stat_density2d(geom = "polygon",alpha=0.3)+
+  coord_cartesian(ylim=c(50,280),xlim=c(10,60)) +scale_colour_brewer(palette="Dark2")
+
+casadas <- datos[datos$ever_married=="Yes","age"]
+NoCasadas <- datos[datos$ever_married=="No","age"]
+g1 <- ggplot(as.data.frame(casadas),aes(casadas))+geom_histogram(fill="blue",colour="black") + theme_light() + xlab("Edad personas casadas")
+g2 <- ggplot(as.data.frame(NoCasadas),aes(NoCasadas))+geom_histogram(fill="green", colour="black")+theme_light() + xlab("Edad personas solteras")
+grid.arrange(g1,g2,nrow=2)
+
+ggplot(datos,aes(age,avg_glucose_level,color=ever_married))+
+  geom_jitter() +
+  theme_light() + 
+  coord_cartesian(ylim=c(50,280),xlim=c(10,60))+scale_colour_brewer(palette="Dark2")
+
+ggplot(datos,aes(age,avg_glucose_level,color=ever_married))+
+  geom_jitter(shape = 16, size = 0.6, show.legend = FALSE,alpha=0.4) +
+  theme_light() + 
+  stat_density2d(geom = "polygon",alpha=0.2)+
+  coord_cartesian(ylim=c(50,280),xlim=c(10,85))+scale_colour_brewer(palette="Dark2")
+
+```
+
+Entonces esas nubes que podemos ver que estan separadas, sencillamente aparecen debido a la edad, ya que las personas casadas, suelen ser a partir de cierta edad mayor donde es mas propenso tener mayor nivel de glucosa. La duda que queda es ver porque hay una nube inferior, y esto puede ser que haya gente casada con bastante menor edad.
+
+
+```{r}
+#Cluster 
+set.seed(1)
+grupos <- factor(kmeans(datos$avg_glucose_level,centers = 2)[[1]])
+ggplot(datos,aes(bmi,avg_glucose_level,color=grupos))+
+  geom_point() +
+  theme_light() + 
+  coord_cartesian(ylim=c(50,280),xlim=c(10,60))+scale_colour_brewer(palette="Dark2")
+```
+
+```{r}
+grupo1 <- datos[grupos == 1,]
+grupo2 <- datos[grupos == 2,]
+
+#Cantidad ACV grupo Alta glucosa
+length(grupo1[grupo1$stroke == 1,"stroke"])
+length(grupo2[grupo2$stroke == 1,"stroke"])
+
+#analisis del grupo 1
+grupo1Vec <- c()
+for (i in c("bmi","avg_glucose_level","age")){
+  grupo1Vec[length(grupo1Vec)+1] <- mean(grupo1[,i],na.rm=T)
+}
+grupo2Vec <- c()
+for (i in c("bmi","avg_glucose_level","age")){
+  grupo2Vec[length(grupo2Vec)+1] <- mean(grupo2[,i],na.rm=T)
+}
+
+df <- data.frame(Variables = c("BMI","Nivel promedio de glucosa","edad"),Grupo_1 = grupo1Vec, Grupo_2 = grupo2Vec )
+df
+g1 <- ggplot(grupo1,aes(stroke,fill=stroke))+geom_bar(aes(y=(..count..)/sum(..count..))) + ggtitle("Grupo 1") +scale_fill_brewer(palette="Dark2")
+g2 <- ggplot(grupo2,aes(stroke,fill = stroke))+geom_bar(aes(y=(..count..)/sum(..count..))) + ggtitle("Grupo 2") +scale_fill_brewer(palette="Dark2")
+grid.arrange(g1,g2,ncol=2)
+```
+
+```{r}
+#grupo 2 con strokes ya que son menos a ver si surge alguna anomalia fuera de gente del grupo
+grupo2Strokes <- grupo2[grupo2$stroke == 1,]
+grupo1Strokes <- grupo1[grupo1$stroke==1,]
+mean(grupo2Strokes$age,na.rm=T)
+ggplot(grupo2Strokes,aes(x=age)) + geom_histogram(fill="mediumpurple1",color="black")+
+  ggtitle("Grupo con menor glucosa que padecieron ACVs")+
+  theme_light()
+
+#Buscamos algo en comun de las personas que padecieron acv.
+
+ggplot(grupo1Strokes,aes(x=heart_disease,fill=hypertension)) + geom_bar()+
+  ggtitle("Grupo con menor glucosa que padecieron ACVs")+scale_fill_brewer(palette="Dark2")
+ggplot(grupo2Strokes,aes(x=heart_disease,fill=hypertension)) + geom_bar()+
+  ggtitle("Grupo con mayor glucosa que padecieron ACVs")+scale_fill_brewer(palette="Dark2")
+
+```
+
+En terminos a variables numericas, lo unico que distingue dentro del grupo 2 a las personas con baja glucosa que tuvieron ACV es por su edad.
+
+Del grupo que segmentamos en nivel de glucosa, vemos que hay una mayor densidad en las personas que padecieron un acv.
+
+
+```{r}
+#Modelo de regresion para predecir glucosa level.
+sample <- sample(c(TRUE, FALSE), nrow(datos), replace=TRUE, prob=c(0.75,0.25))
+train <- datos[sample,]
+test <- datos[!sample,]
+
+modelo <-  lm(avg_glucose_level ~ gender+age+hypertension+heart_disease+ever_married+work_type+Residence_type+bmi+smoking_status,data = train)
+mean(abs(test$avg_glucose_level - predict(modelo,test[,c(2:8,10:11)])),na.rm=T)
+
+vars <- names(datos)[c(2:8,10:11)]
+
+models <- list()
+
+for (i in 1:5){
+  vc <- combn(vars,i)
+  for (j in 1:ncol(vc)){
+    model <- as.formula(paste0("avg_glucose_level ~", paste0(vc[,j], collapse = "+")))
+    models <- c(models, model)
+  }
+}
+
+sample <- sample(c(TRUE, FALSE), nrow(datos), replace=TRUE, prob=c(0.75,0.25))
+train <- datos[sample,]
+test <- datos[!sample,]
+
+error <- c()
+for (i in 1:length(models)) {
+  modelo <- lm(models[[i]],data = train)
+  error[i] <- mean(abs(test$avg_glucose_level - predict(modelo,test[,c(2:8,10:11)])),na.rm=T)
+}
+which.min(error)
+# avg_glucose_level ~ hypertension + heart_disease + Residence_type + bmi
+
+```
+
+
+
+```{r}
+sample <- sample(c(TRUE, FALSE), nrow(datos), replace=TRUE, prob=c(0.75,0.25))
+train <- datos[sample,]
+test <- datos[!sample,]
+
+error <- c()
+for (i in 1:length(models)) {
+  modelo <- lm(models[[i]],data = train)
+  error[i] <- mean(abs(test$avg_glucose_level - predict(modelo,test[,c(2:8,10:11)])),na.rm=T)
+}
+which.min(error)
+min(error)/mean(datos$avg_glucose_level)
+```
+
+```{r}
+library(e1071)
+library(caTools)
+library(class)
+# k = 9 es el de mejor accuracy que es 70%
+for(i in 1:20){
+  sample <- sample(c(TRUE, FALSE), nrow(datosAcotados), replace=TRUE, prob=c(0.75,0.25))
+  train <- datosAcotados[sample,2:11]
+  test <- datosAcotados[!sample,2:11]
+  
+  classifier_knn <- knn(train,
+                        test,
+                        cl = datosAcotados[sample,12],
+                        k = i)
+  
+  print(confusionMatrix(data = factor(classifier_knn),reference = factor(datosAcotados[!sample,12]))[[3]][1])
+
+}
+sample <- sample(c(TRUE, FALSE), nrow(datosNumericos), replace=TRUE, prob=c(0.8,0.2))
+train <- datosNumericos[sample,2:11]
+test <- datosNumericos[!sample,2:11]
+
+classifier_knn <- knn(train,
+                      test,
+                      cl = datosNumericos[sample,12],
+                      k = 9)
+
+table(datosNumericos[!sample,12],classifier_knn)
+```
+
+Sensibilidad de probalidad, dado q una persona tenga un stroke que le pegue
+Especificidad, de que una perosna no tenga stroke que le pega q no tenga stroke
+
+```{r}
+#Undersampling
+indiceUnderSampling <- 1 # indica si la cantidad es 1 a 1 o 1 a 5 asi
+k <- 1:20
+precisionK <- c()
+for(cantidad in k){
+  acc <- c()
+  for(repeticiones in 1:20){
+    index <- sample(which(datosNumericos$stroke == 0),sum(datosNumericos$stroke == 1)*indiceUnderSampling)
+    datosAcotados <-  datosNumericos[c(which(datosNumericos$stroke == 1),index),]
+    datosAcotados <- datosAcotados[sample(1:dim(datosAcotados)[1],dim(datosAcotados)[1]),]
+    #Hacemos CV
+    indices <- seq(1,dim(datosAcotados)[1], 100)
+    prom <- c()
+    for(i in 1:(length(indices)-1)){
+      muestreo <- indices[i]:indices[i+1]
+      train <- datosAcotados[muestreo,2:11]
+      test <- datosAcotados[-muestreo,2:11]
+      clasificador <- knn(train,test,cl = datosAcotados[muestreo,12], k = cantidad)
+      prom <- c(prom,confusionMatrix(data =factor(clasificador), reference = factor(datosAcotados[-muestreo,12]))[[3]][1])
+    }
+    acc[repeticiones] <- mean(prom)
+  }
+  precisionK[cantidad] <- mean(acc)
+}
+
+precisionK
+plot(k,1-precisionK,pch=20)
+```
+
+```{r}
+#Todo indica que es 9 
+indiceUnderSampling <- 3 # indica si la cantidad es 1 a 1 o 1 a 5 asi
+k <- 9
+precisionK <- c()
+acc <- c()
+for(repeticiones in 1:15){
+  index <- sample(which(datosNumericos$stroke == 0),sum(datosNumericos$stroke == 1)*indiceUnderSampling)
+  datosAcotados <-  datosNumericos[c(which(datosNumericos$stroke == 1),index),]
+  datosAcotados <- datosAcotados[sample(1:dim(datosAcotados)[1],dim(datosAcotados)[1]),]
+  #Hacemos CV
+  indices <- seq(1,dim(datosAcotados)[1], 100)
+  prom <- c()
+  for(i in 1:(length(indices)-1)){
+    muestreo <- indices[i]:indices[i+1]
+    train <- datosAcotados[muestreo,2:11]
+    test <- datosAcotados[-muestreo,2:11]
+    clasificador <- knn(train,test,cl = datosAcotados[muestreo,12], k = k)
+    prom <- c(prom,confusionMatrix(data =factor(clasificador), reference = factor(datosAcotados[-muestreo,12]))[[3]][1])
+  }
+  acc[repeticiones] <- mean(prom)
+}
+precision<- mean(acc)
+precision
+```
+
+```{r}
+
+set.seed(355033)
+indiceUnderSampling <- 2
+k <- 9
+index <- sample(which(datosNumericos$stroke == 0),sum(datosNumericos$stroke == 1)*indiceUnderSampling)
+datosAcotados <-  datosNumericos[c(which(datosNumericos$stroke == 1),index),]
+datosAcotados <- datosAcotados[sample(1:dim(datosAcotados)[1],dim(datosAcotados)[1]),]
+indices <- sample(1:dim(datosAcotados)[1],round(dim(datosAcotados)[1]*0.8))
+train <- datosAcotados[indices,2:11]
+test <- datosAcotados[-indices,2:11]
+clasificador <- knn(train,test,cl = datosAcotados[indices,12], k = k)
+tabla <- table(clasificador,datosAcotados[-indices,12])
+acc <- (tabla[1]+tabla[4])/sum(tabla)
+
+Verdaderos <- factor(c(0, 0, 1, 1))
+Predichos <- factor(c(0,1, 0, 1),levels=c("1","0"))
+Y      <- c(tabla[1], tabla[2], tabla[3], tabla[4])
+df <- data.frame(Verdaderos, Predichos, Y)
+
+ggplot(data =  df, aes(x = Verdaderos, y = Predichos)) +
+  geom_tile(aes(fill = Y), colour = "white") +
+  geom_text(aes(label = sprintf("%1.0f", Y)), vjust = 1) +
+   scale_fill_gradient(low="white", high="#009194") +
+  theme_bw() + theme(legend.position = "none") + ggtitle("Vecinos = 9 y undersampling 1 a 1")
+
+```
+
+
